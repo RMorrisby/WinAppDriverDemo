@@ -43,3 +43,29 @@ Maven dependencies :
         </dependency>
     </dependencies>
 ```
+
+# Connecting to an existing window
+
+Sample code is in C#, but illustrates what to do
+```
+// Start up WinAppDriver in 'root' mode to access the entrie Windows desktop
+DesiredCapabilities appCapabilities = new DesiredCapabilities();
+appCapabilities.SetCapability("app", "Root");
+DesktopSession = new WindowsDriver<WindowsElement>(new Uri("http://127.0.0.1:4723"), appCapabilities);
+
+// Launch your application (perhaps even by sending keys through the driver) then use the 'root' session to get the window handle
+// In this example, the application is Cortana
+DesktopSession.Keyboard.SendKeys(Keys.Meta + "s" + Keys.Meta);
+
+var CortanaWindow = DesktopSession.FindElementByName("Cortana");
+var CortanaTopLevelWindowHandle = CortanaWindow.GetAttribute("NativeWindowHandle");
+CortanaTopLevelWindowHandle = (int.Parse(CortanaTopLevelWindowHandle)).ToString("x"); // Convert to Hex
+
+// Create session by attaching to Cortana top level window
+DesiredCapabilities appCapabilities = new DesiredCapabilities();
+appCapabilities.SetCapability("appTopLevelWindow", CortanaTopLevelWindowHandle);
+CortanaSession = new WindowsDriver<WindowsElement>(new Uri(WindowsApplicationDriverUrl), appCapabilities);
+
+// Use the session to control Cortana
+CortanaSession.FindElementByAccessibilityId("SearchTextBox").SendKeys("add");
+```
